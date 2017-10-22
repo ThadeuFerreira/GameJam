@@ -17,8 +17,11 @@
 #define BKGMAGENTA "\e[1;45m"
 #define BKGCYAN "\e[1;46m"
 
+#define MAPAX 200
+#define MAPAY 100
+
 typedef struct{
-   char** c;
+   char c[MAPAY][MAPAX];
    int alt;
    int lar;
 } MAPA;
@@ -29,7 +32,7 @@ typedef struct{
    char newChar;
 } CHANGE;
 
-MAPA* oldScreen;
+
 
 void mem_zero(void* pointer, int size){
    for(size -= 1;size >= 0; size --)
@@ -46,19 +49,11 @@ void printMap(MAPA* mapa){
    }
 }
 
-MAPA* mapa_create(int lar, int alt){
+void mapa_create(MAPA *newMap, int lar, int alt){
    int aux, aux1;
-   MAPA* newMap;
-   newMap = (MAPA*)malloc(sizeof(MAPA));
-
-   newMap->c = (char**)malloc(alt*sizeof(char*));
-   for(aux = 0;aux < alt;aux ++){
-      newMap->c[aux] = (char*)malloc(lar);
-   }
 
    newMap->lar = lar;
    newMap->alt = alt;
-   return newMap;
 }
 
 /*CHANGE* change_create(){
@@ -87,8 +82,8 @@ MAPA* mapa_create(int lar, int alt){
    }
 }*/
 
-MAPA* generateScreen(MAPA* map, int player_x, int player_y){
-   MAPA* newMap;
+MAPA* generateScreen(MAPA* map, MAPA* newMap, int player_x, int player_y){
+  
    int aux, aux1;
    int offsetLeft = 0, offsetTop = 0;
    int offsetRight = 0, offsetBottom = 0;
@@ -100,7 +95,7 @@ MAPA* generateScreen(MAPA* map, int player_x, int player_y){
    int map_final_x;
    int map_final_y;
 
-   newMap = mapa_create(terminal_x, terminal_y);
+   mapa_create(newMap, terminal_x, terminal_y);
 
    map_initial_x = player_x - terminal_x/2;
    map_initial_y = player_y - terminal_y/2;
@@ -138,7 +133,7 @@ MAPA* generateScreen(MAPA* map, int player_x, int player_y){
          newMap->c[aux - map_initial_y + offsetTop][aux1 - map_initial_x + offsetLeft] = map->c[aux][aux1];
       }
       for(aux1 = 0;aux1 < offsetRight;aux1 ++){
-         newMap->c[aux - map_initial_y + offsetTop][aux1 + map_final_x - map_initial_x + offsetLeft] = '#';
+         newMap->c[aux - map_initial_y + offsetTop][aux1 + map_final_x - map_initial_x + offsetLeft] = '.';
       }
    }
    for(aux = 0;aux < offsetBottom; aux ++){
@@ -146,30 +141,40 @@ MAPA* generateScreen(MAPA* map, int player_x, int player_y){
          newMap->c[aux + offsetTop + map_final_y - map_initial_y][aux1] = '#';
       }
    }
-   return newMap;
+   return &newMap;
 }
 
 void mapa_copy(MAPA* newMap, MAPA* map){
-   int x, y;
-   memcpy(newMap->c, map->c, map->lar * map->alt);
+	for (size_t i = 0; i < map->alt; i++)
+	{
+		for (size_t j = 0; j < map->lar; j++)
+		{
+			newMap->c[i][j] = map->c[i][j] + 1;
+		}
+	}
+
    newMap->lar = map->lar;
    newMap->alt = map->alt;
 }
 
 void set_cursor(int x, int y){
-   printf("\033[%d;%dH", y+1, x+1);
+   //printf("\033[%d;%dH", y+1, x+1);
 }
 
-void draw(MAPA* map, int playerX, int playerY){
-   MAPA* newScreen = generateScreen(map, playerX, playerY);
+void drawScreen(MAPA* map, MAPA* oldScreen, int playerX, int playerY){
+	MAPA newScreen;
+	newScreen.lar = MAPAX;
+	newScreen.alt = MAPAY;
+	generateScreen(map, &newScreen, playerX, playerY);
+
    int x, y;
-   for(y = 0;y < newScreen->alt; y ++){
-      for(x = 0;x < newScreen->lar; x++){
-         if(newScreen->c[y][x] != oldScreen->c[y][x]){
+   for(y = 0;y < newScreen.alt; y ++){
+      for(x = 0;x < newScreen.lar; x++){
+         if(newScreen.c[y][x] != oldScreen->c[y][x]){
             set_cursor(x,y);
-            printf("%c",newScreen->c[y][x]);
+            printf("%c",newScreen.c[y][x]);
          }
       }
    }
-   mapa_copy(oldScreen, newScreen);
+   mapa_copy(oldScreen, &newScreen);
 }
