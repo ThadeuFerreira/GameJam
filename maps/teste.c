@@ -1,10 +1,23 @@
 #include<stdlib.h>
 #include<stdio.h>
-#include "jean.c"
 #include<time.h>
+
+
 
 #define MAPAX 200
 #define MAPAY 100
+
+typedef struct {
+	char c[MAPAY][MAPAX];
+	int alt;
+	int lar;
+} MAPA;
+
+typedef struct {
+	int x;
+	int y;
+	char newChar;
+} CHANGE;
 
 void clampPosition(int* x, int* y, int maxX, int maxY){
    if(*x > maxX) *x = maxX;
@@ -15,40 +28,43 @@ void clampPosition(int* x, int* y, int maxX, int maxY){
 
 void go_to(int* x, int* y){
    int newX, newY;
-   scanf("%d%d", &newX, &newY);
+   scanf_s("%d%d", &newX, &newY);
    *x = newX;
    *y = newY;
 }
 
 int main(){
-   MAPA* mapa;
+   MAPA mapa;
+   MAPA oldScreen;
    int aux, aux1;
    int monsterX, monsterY;
  
    int heroX = MAPAX/2, heroY = MAPAY/2;
-
-   mapa = mapa_create(MAPAX, MAPAY);
-   oldScreen = mapa_create(MAPAX, MAPAY);
-
-   for(aux = 0;aux < mapa->alt; aux ++){
-      for(aux1 = 0;aux1 < mapa->lar;aux1 ++){
-         mapa->c[aux][aux1] = '.';// + rand()%2;
-      }
-   }
-
-   mapa_copy(oldScreen, mapa);
-
    
+   mapa.lar = MAPAX;
+   mapa.alt = MAPAY;
+   oldScreen.lar = MAPAX;
+   oldScreen.alt = MAPAY;
+   for (size_t i = 0; i < MAPAY; i++)
+   {
+	   for (size_t j = 0; j < MAPAX; j++)
+	   {
+		   mapa.c[i][j] = '.';
+	   }
+
+   }
+   mapa_copy(&oldScreen, &mapa);
+
    monsterX = heroX + rand()%10 + 3;
    monsterY = heroY + rand()%10 + 3;
-   mapa->c[heroY][heroX] = 'H';
+   mapa.c[heroY][heroX] = 'H';
    while(1){
       char command;
-      draw(mapa, heroX,heroY);
+      drawScreen(&mapa, &oldScreen, heroX,heroY);
 
-      scanf("%c",&command);
+      scanf_s("%c",&command);
 
-      mapa->c[heroY][heroX] = ' ';
+      mapa.c[heroY][heroX] = ' ';
 
       if(command == 'w'){
          heroY--;
@@ -66,11 +82,11 @@ int main(){
          go_to(&heroX, &heroY);
       }
       clampPosition(&heroX,&heroY, MAPAX-1, MAPAY-1);
-      mapa->c[heroY][heroX] = 'H';
+      mapa.c[heroY][heroX] = 'H';
 
-      mapa->c[monsterY][monsterX] = ' ';
+      mapa.c[monsterY][monsterX] = ' ';
       monsterX += rand()%3 - 1;
       monsterY += rand()%3 - 1;
-      mapa->c[monsterY][monsterX] = 'T';
+      mapa.c[monsterY][monsterX] = 'T';
    }
 }
