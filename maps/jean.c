@@ -16,7 +16,7 @@
 #define BKGBLUE "\e[1;44m"
 #define BKGMAGENTA "\e[1;45m"
 #define BKGCYAN "\e[1;46m"
-
+//THADEU AS HERE
 typedef struct{
    char** c;
    int alt;
